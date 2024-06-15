@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app_network
+
+  init-config:
+    image: busybox
+    container_name: init_container
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JUPYTERHUB_PORT: ${JUPYTERHUB_PORT}
+    volumes:
+      - ./init_config.sh:/init_config.sh
+      - jupyter_data:/jupyterhub
+    networks:
+      - app_network
+    entrypoint: ["sh", "/init_config.sh"]
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      init-config:
+        condition: service_completed_successfully
+    ports:
+      - ${JUPYTERHUB_PORT}:${JUPYTERHUB_PORT}
+    volumes:
+      - jupyter_data:/jupyterhub
+    entrypoint: ["jupyterhub", "-f", "/jupyterhub/config/jupyterhub_config.py"]
+    networks:
+      - app_network
+
+volumes:
+  pg_data:
+  jupyter_data:
+
+networks:
+  app_network:
+    driver: bridge
