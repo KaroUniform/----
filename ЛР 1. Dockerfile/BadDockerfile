@@ -1,0 +1,12 @@
+FROM jupyterhub/jupyterhub:latest
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    vim \
+    git \
+    nodejs \
+    npm
+
+WORKDIR /jupyterhub
+
+ENTRYPOINT jupyterhub --port 8000
