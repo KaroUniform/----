@@ -1,0 +1,60 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nextcloud
+  labels:
+    app: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      containers:
+        - name: nextcloud
+          image: docker.io/nextcloud:stable-apache
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 128Mi
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: nextcloud-configmap
+            - secretRef:
+                name: pg-auth-data
+            - secretRef:
+                name: nextcloud-secret
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-configmap
+                  key: POSTGRES_DB
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost/status.php
+            initialDelaySeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost/status.php
+            initialDelaySeconds: 10
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
