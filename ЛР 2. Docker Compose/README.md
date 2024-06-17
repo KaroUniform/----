@@ -77,6 +77,7 @@ EOL
     build:
       context: .
       dockerfile: Dockerfile
+    image: my-jupyter
     container_name: app_service
     depends_on:
       postgres:
