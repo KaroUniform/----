@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0
+
+### Добавлено
+
+- Директория `ЛР 4. More Kubernetes`
+  - `app_configmap.yaml` манифест ConfigMap для приложения (jupyterhub).
+  - `app_pvc.yaml` манифест PersistentVolumeClaim для приложения (jupyterhub).
+  - `app_deployment.yaml` манифест Deployment для приложения (jupyterhub).
+  - `pg_configmap.yaml` манифест ConfigMap для PostgreSQL.
+  - `pg_secret.yaml` манифест Secret для PostgreSQL.
+  - `pg_deployment.yaml` манифест Deployment для PostgreSQL.
+  - `pg_service.yaml` манифест Service для PostgreSQL.
+
 ## 0.3.0
 
 ### Добавлено

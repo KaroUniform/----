@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-jupyter
+  labels:
+    app: my-jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-jupyter
+  template:
+    metadata:
+      name: my-jupyter
+      labels:
+        app: my-jupyter
+    spec:
+      initContainers:
+        - name: init-config
+          image: busybox
+          envFrom:
+            - configMapRef:
+                name: postgres-configmap
+            - secretRef:
+                name: pg-auth-data
+            - configMapRef:
+                name: init-config
+          volumeMounts:
+            - mountPath: /jupyterhub
+              name: jupyter-data
+            - mountPath: /init_config.sh
+              subPath: init_config.sh
+              name: init-config
+          command:
+            - sh
+            - /init_config.sh
+      containers:
+        - name: app
+          image: my-jupyter:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /jupyterhub
+              name: jupyter-data
+          command:
+            - jupyterhub
+            - -f
+            - /jupyterhub/config/jupyterhub_config.py
+      restartPolicy: Always
+      volumes:
+        - name: jupyter-data
+          persistentVolumeClaim:
+            claimName: jupyter-data
+        - name: init-config
+          configMap:
+            name: init-config
+      
